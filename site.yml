@@ -3,23 +3,38 @@
   become: true
   pre_tasks:
   
-  - name: Upgrade all packages to latest version in all servers ( Ubuntu and CentOS )  
+  - name: Upgrade all packages & update repo cache to latest version in all servers ( Ubuntu and CentOS )  
     package:
-      name: '*'
-      state: latest
+      update_cache: yes
+    changed_when: false
+#      name: '*'
+#      state: latest
 
-#  - name: install updates (CentOS)
+- hosts: all
+  become: true 
+  tasks:
+   
+  - name: add ssh key for simone
+    tags: always
+    authorized_key:
+      user: simone
+      key: "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIN9uBQVAsmcVvJRTYsYx92bYT1d2kE4j/yMVFra5xvtl ansible"
+     
+ 
+#  - name: update repo cache & install updates (CentOS)
 #    tags: always
 #    dnf:
 #      update_only: yes
 #      update_cache: yes
+#    changed_when: false
 #    when: ansible_distribution == "CentOS"
 
-#  - name: install updates (Ubuntu)
+#  - name: update repo cache & install updates (Ubuntu)
 #    tags: always
 #    apt:
 #      upgrade: dist
 #      update_cache: yes
+#    changed_when: false
 #    when: ansible_distribution == "Ubuntu"
 
 - hosts: workstation
