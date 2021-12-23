@@ -1,20 +1,18 @@
 - name: install httpd package (CentOS)
   tags: apache,centos,httpd
-  dnf:
-    name: 
-      - httpd
-      - php
+  package:
+    name:
+      - "{{ apache_package_name }}"
+      - "{{ php_package_name }}"
     state: latest
-  when: ansible_distribution == "CentOS"
 
-- name: start and enable httpd (CentOS)
+- name: start and enable apache service
   tags: apache,centos,httpd
   service:
-    name: httpd
+    name: "{{ apache_service }}" 
     state: started
     enabled: yes
-  when: ansible_distribution == "CentOS"
-
+  
 - name: firewall open port 80/tcp on CentOS
   firewalld:
     port: 80/tcp
@@ -29,16 +27,9 @@
   lineinfile:
     path: /etc/httpd/conf/httpd.conf
     regexp: '^ServerAdmin'
-    line: ServerAdmin knaveen007singh@outlook.com
+    line: ServerAdmin knaveen007singh@outlook.net
   when: ansible_distribution == "CentOS"
-  register: httpd
-
-- name: restart httpd (CentOS)
-  tags: apache,centos,httpd
-  service:
-    name: httpd
-    state: restarted
-  when: httpd.changed
+  notify: restart_apache
 
 - name: copy html file for site
   tags: apache,apache2,httpd
@@ -49,11 +40,3 @@
     group: root
     mode: 0644
 
-- name: install apache2 package (Ubuntu)
-  tags: apache,apache2,ubuntu
-  apt:
-    name:
-      - apache2
-      - libapache2-mod-php
-    state: latest
-  when: ansible_distribution == "Ubuntu" 
