@@ -3,19 +3,24 @@
   become: true
   pre_tasks:
   
-  - name: install updates (CentOS)
-    tags: always
-    dnf:
-      update_only: yes
-      update_cache: yes
-    when: ansible_distribution == "CentOS"
+  - name: Upgrade all packages to latest version in all servers ( Ubuntu and CentOS )  
+    package:
+      name: '*'
+      state: latest
 
-  - name: install updates (Ubuntu)
-    tags: always
-    apt:
-      upgrade: dist
-      update_cache: yes
-    when: ansible_distribution == "Ubuntu"
+#  - name: install updates (CentOS)
+#    tags: always
+#    dnf:
+#      update_only: yes
+#      update_cache: yes
+#    when: ansible_distribution == "CentOS"
+
+#  - name: install updates (Ubuntu)
+#    tags: always
+#    apt:
+#      upgrade: dist
+#      update_cache: yes
+#    when: ansible_distribution == "Ubuntu"
 
 - hosts: workstation
   become: true
@@ -48,6 +53,12 @@
       state: latest
     when: ansible_distribution == "Ubuntu"
 
+#  - name: Upgrade all packages to the latest version of Ubuntu
+#    apt:
+#      name: "*"
+#      state: latest
+#    when: ansible_distribution == "Ubuntu"
+
   - name: install httpd and php package on CentOS servers
     tags: apache,centos,httpd
     dnf:
@@ -57,6 +68,46 @@
       state: latest
     when: ansible_distribution == "CentOS"
   
+  - name: start httpd (CentOS)
+    tags: apache,centos,httpd
+    service:
+      name: httpd
+      state: started
+      enabled: yes
+    when: ansible_distribution == "CentOS" 
+  
+  - name: firewalld open port 80 on CentOS
+    firewalld:
+      port: 80/tcp
+      permanent: yes
+      immediate: yes
+      state: enabled
+      zone: public
+    when: ansible_distribution == "CentOS"
+
+  - name: change e-mail address for admin
+    tags: apache,centos,httpd
+    lineinfile:
+      path: /etc/httpd/conf/httpd.conf 
+      regexp: '^ServerAdmin'
+      line: ServerAdmin knaveen007singh@outlook.com
+    when: ansible_distribution == "CentOS"
+    register: httpd
+
+  - name: restart httpd (CentOS)
+    tags: apache,centos,httpd
+    service:
+      name: httpd
+      state: restarted
+    when: httpd.changed
+
+
+#  - name: upgrade all packages to the latest version of CentOS
+#    dnf:
+#      name: "*"
+#      state: latest
+#    when: ansible_distribution == "CentOS"
+
   - name: copy default html file for site
     tags: apache,apache2,httpd
     copy:
